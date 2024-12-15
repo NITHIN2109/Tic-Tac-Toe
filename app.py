@@ -6,10 +6,10 @@ app = Flask(__name__)
 
 # Load policies for both computer players
 p1computer = Player("computer1", exp_rate=0)
-p1computer.loadPolicy("policy_p1")
+p1computer.loadPolicy("policy_computer1")
 
 p2computer = Player("computer2", exp_rate=0)
-p2computer.loadPolicy("policy_p2")
+p2computer.loadPolicy("policy_computer2")
 
 # Initialize state with default players
 p1 = HumanPlayer("human")
