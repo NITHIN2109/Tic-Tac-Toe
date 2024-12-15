@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tic-Tac-Toe</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        text-align: center;
+      }
+
+      .board {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        grid-gap: 5px;
+        margin: 20px auto;
+        max-width: 300px;
+      }
+
+      .cell {
+        width: 100%;
+        padding-top: 100%;
+        position: relative;
+        border: 1px solid #000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        cursor: pointer;
+        transition: background-color 0.3s;
+      }
+
+      .cell:hover {
+        background-color: #f0f0f0;
+      }
+
+      .cell-content {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      #message {
+        margin-top: 20px;
+        font-size: 18px;
+        color: green;
+      }
+
+      @media (max-width: 400px) {
+        .board {
+          max-width: 100%;
+        }
+
+        .cell {
+          font-size: 18px;
+        }
+
+        #message {
+          font-size: 16px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Tic-Tac-Toe</h1>
+
+    <div>
+      <label for="firstPlayer">Choose First Player:</label>
+      <select id="firstPlayer">
+        <option value="user">User</option>
+        <option value="computer">Computer</option>
+      </select>
+      <button onclick="chooseFirstPlayer();">Start Game</button>
+    </div>
+
+    <div class="board" id="board">
+      <!-- Board cells will be added dynamically using JavaScript -->
+    </div>
+
+    <div id="message"></div>
+
+    <script>
+      // Function to send the user's choice of the first player to the server
+      function chooseFirstPlayer() {
+        const choice = document.getElementById("firstPlayer").value;
+        fetch("/choose_first_player", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ choice: choice }),
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            if (data.status === "success") {
+              startGame(data);
+            } else {
+              alert("Failed to choose the first player.");
+            }
+          })
+          .catch((error) => {
+            console.error("Error:", error);
+            alert("An error occurred. Please try again.");
+          });
+      }
+
+      // Function to start the game
+      function startGame(data) {
+        const boardDiv = document.getElementById("board");
+        boardDiv.innerHTML = ""; // Clear the board
+
+        // Add cells to the board
+        for (let row = 0; row < 3; row++) {
+          for (let col = 0; col < 3; col++) {
+            const cellDiv = document.createElement("div");
+            cellDiv.className = "cell";
+            cellDiv.setAttribute("data-row", row);
+            cellDiv.setAttribute("data-col", col);
+            cellDiv.addEventListener("click", makeMove);
+            const cellContent = document.createElement("div");
+            cellContent.className = "cell-content";
+            cellDiv.appendChild(cellContent);
+            boardDiv.appendChild(cellDiv);
+          }
+        }
+
+        // If computer is playing first, update the board with its initial move
+        if (data.computer_move) {
+          updateBoard(data);
+        }
+
+        // Reset the message
+        document.getElementById("message").textContent = "";
+      }
+
+      // Function to handle cell click and make a move
+      function makeMove(event) {
+        const row = event.currentTarget.getAttribute("data-row");
+        const col = event.currentTarget.getAttribute("data-col");
+
+        fetch("/make_move", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ row: row, col: col }),
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            if (data.status === "error") {
+              alert(data.message);
+              console.log(data.message);
+            } else {
+              console.log(data);
+              updateBoard(data);
+            }
+          })
+          .catch((error) => {
+            console.error("Error:", error);
+            alert("An error occurred. Please try again.");
+          });
+      }
+
+      // Function to update the board based on the server response
+      function updateBoard(data) {
+        const boardDiv = document.getElementById("board");
+        const cells = boardDiv.getElementsByClassName("cell-content");
+
+        // Check if data.board is present
+        if (!data.board) {
+          console.error("Invalid or missing data.board:", data);
+          return;
+        }
+
+        // Update the board cells
+        for (let cellContent of cells) {
+          const parentCell = cellContent.parentElement;
+          const row = parentCell.getAttribute("data-row");
+          const col = parentCell.getAttribute("data-col");
+
+          // Check if row and col are valid indices for data.board
+          if (
+            row >= 0 &&
+            row < data.board.length &&
+            col >= 0 &&
+            col < data.board[row].length
+          ) {
+            const symbol = data.board[row][col];
+            cellContent.textContent =
+              symbol === 1 ? "O" : symbol === -1 ? "X" : "";
+          } else {
+            console.error("Invalid row or col values:", row, col);
+          }
+        }
+
+        // Display the message
+        if (data.status === "end") {
+          const messageDiv = document.getElementById("message");
+          const choice = document.getElementById("firstPlayer").value;
+
+          messageDiv.textContent =
+            choice === "user"
+              ? data.winner === 1
+                ? "You won!"
+                : data.winner === -1
+                ? "Computer won!"
+                : "It's a tie!"
+              : choice === "computer"
+              ? data.winner === -1
+                ? "You won!"
+                : data.winner === 1
+                ? "Computer won!"
+                : "It's a tie!"
+              : "Invalid choice";
+        }
+      }
+    </script>
+  </body>
+</html>
+  
