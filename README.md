@@ -40,10 +40,10 @@ cd tic-tac-toe-ai</code></pre>
 <h3>Running the Game</h3>
 <ol>
     <li><strong>Train the AI (optional):</strong>
-        <pre><code>python train_ai.py</code></pre>
+        <pre><code>python train.py</code></pre>
     </li>
     <li><strong>Start the game:</strong>
-        <pre><code>python tic_tac_toe.py</code></pre>
+        <pre><code>python app.py</code></pre>
     </li>
 </ol>
 
