@@ -22,8 +22,11 @@ git clone https://github.com/yourusername/tic-tac-toe-ai.git
 cd tic-tac-toe-ai
 <h3>Install dependencies: </h3>
 pip install numpy
+
 Running the Game
+
 Train the AI (optional):
 python train.py
+
 Start the game:
 python tic_tac_toe.py
